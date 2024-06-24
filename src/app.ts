@@ -1,5 +1,6 @@
 import express, { Request, Response, NextFunction } from 'express';
 import { json } from 'body-parser';
+import "reflect-metadata";
 
 import todoRoutes from './routes/notes';
 

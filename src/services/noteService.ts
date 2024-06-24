@@ -1,16 +1,21 @@
+import { injectable, inject } from "inversify";
 import { PrismaClient } from '@prisma/client';
+import { TYPES } from "../inversify/types";
 
-
-interface Logger {
+export interface Logger {
     log(...data: any[]): void;
 }
 
+@injectable()
 export class NoteService {
-    constructor(private readonly connectionPool: PrismaClient, private readonly logger: Logger) {}
+    constructor(
+        @inject(TYPES.PrismaClient) private readonly connectionPool: PrismaClient,
+        @inject(TYPES.Logger) private readonly logger: Logger
+    ) {}
 
     async getAllNotes() {
         const result = await this.connectionPool.noteService.findMany();
-        return result        
+        return result;        
     }
 
     async addNote (text: string) {
@@ -18,13 +23,12 @@ export class NoteService {
             const result = await this.connectionPool.noteService.create({
                 data: {
                     content: text
-                  }
+                }
             });
 
             this.logger.log(result);
-        }
-        catch (e) {
-            console.log(e)
+        } catch (e) {
+            console.log(e);
         }
     }
 
@@ -37,8 +41,7 @@ export class NoteService {
 
     async deleteNote (id: string) {
         await this.connectionPool.noteService.delete({
-            where: {id: +id}
+            where: { id: +id }
         });
     }
-
 }
