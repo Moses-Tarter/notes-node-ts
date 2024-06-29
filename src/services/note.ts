@@ -15,7 +15,7 @@ export class NoteService {
 
   async getAllNotes() {
     try {
-      const result = await this.connectionPool.noteService.findMany();
+      const result = await this.connectionPool.note.findMany();
       this.logger.log(result);
       return result;
     } catch (e) {
@@ -24,10 +24,11 @@ export class NoteService {
     }
   }
 
-  async addNote(text: string) {
+  async addNote(id: number, text: string) {
     try {
-      const result = await this.connectionPool.noteService.create({
+      const result = await this.connectionPool.note.create({
         data: {
+          userId: id,
           content: text,
         },
       });
@@ -41,7 +42,7 @@ export class NoteService {
 
   async updateNote(id: string, text: string) {
     try {
-      const results = await this.connectionPool.noteService.update({
+      const results = await this.connectionPool.note.update({
         where: { id: +id },
         data: { content: text },
       });
@@ -55,7 +56,7 @@ export class NoteService {
 
   async deleteNote(id: string) {
     try {
-      const results = await this.connectionPool.noteService.delete({
+      const results = await this.connectionPool.note.delete({
         where: { id: +id },
       });
 
