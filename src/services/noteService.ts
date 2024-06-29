@@ -1,47 +1,68 @@
 import { injectable, inject } from "inversify";
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from "@prisma/client";
 import { TYPES } from "../inversify/types";
 
 export interface Logger {
-    log(...data: any[]): void;
+  log(...data: any[]): void;
 }
 
 @injectable()
 export class NoteService {
-    constructor(
-        @inject(TYPES.PrismaClient) private readonly connectionPool: PrismaClient,
-        @inject(TYPES.Logger) private readonly logger: Logger
-    ) {}
+  constructor(
+    @inject(TYPES.PrismaClient) private readonly connectionPool: PrismaClient,
+    @inject(TYPES.Logger) private readonly logger: Logger
+  ) {}
 
-    async getAllNotes() {
-        const result = await this.connectionPool.noteService.findMany();
-        return result;        
+  async getAllNotes() {
+    try {
+      const result = await this.connectionPool.noteService.findMany();
+      this.logger.log(result);
+      return result;
+    } catch (e) {
+      this.logger.log(e);
+      throw new Error("failed to retrieve...");
     }
+  }
 
-    async addNote (text: string) {
-        try {
-            const result = await this.connectionPool.noteService.create({
-                data: {
-                    content: text
-                }
-            });
+  async addNote(text: string) {
+    try {
+      const result = await this.connectionPool.noteService.create({
+        data: {
+          content: text,
+        },
+      });
 
-            this.logger.log(result);
-        } catch (e) {
-            console.log(e);
-        }
+      this.logger.log(result);
+    } catch (e) {
+      this.logger.log(e);
+      throw new Error("failed to add the new note...");
     }
+  }
 
-    async updateNote (id: string, text: string) {
-        const results = await this.connectionPool.noteService.update({
-            where: { id: +id },
-            data: { content: text },
-        });
-    }
+  async updateNote(id: string, text: string) {
+    try {
+      const results = await this.connectionPool.noteService.update({
+        where: { id: +id },
+        data: { content: text },
+      });
 
-    async deleteNote (id: string) {
-        await this.connectionPool.noteService.delete({
-            where: { id: +id }
-        });
+      this.logger.log(results);
+    } catch (e) {
+      this.logger.log(e);
+      throw new Error("failed to update...");
     }
+  }
+
+  async deleteNote(id: string) {
+    try {
+      const results = await this.connectionPool.noteService.delete({
+        where: { id: +id },
+      });
+
+      this.logger.log(results);
+    } catch (e) {
+      this.logger.log(e);
+      throw new Error("failed to delete...");
+    }
+  }
 }
