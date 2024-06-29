@@ -1,7 +1,8 @@
 import { injectable, inject } from "inversify";
-import { PrismaClient } from "@prisma/client";
+import { Note, PrismaClient } from "@prisma/client";
 import { TYPES } from "../inversify/types";
 
+// where should this be located? currently found here and in users.ts
 export interface Logger {
   log(...data: any[]): void;
 }
@@ -13,7 +14,13 @@ export class NoteService {
     @inject(TYPES.Logger) private readonly logger: Logger
   ) {}
 
-  async getAllNotes() {
+  async getAllNotes(): Promise<
+    {
+      id: number;
+      content: string;
+      userId: number;
+    }[]
+  > {
     try {
       const result = await this.connectionPool.note.findMany();
       this.logger.log(result);
@@ -24,7 +31,26 @@ export class NoteService {
     }
   }
 
-  async addNote(id: number, text: string) {
+  async getNotesByUserId(userId: number): Promise<
+    {
+      id: number;
+      content: string;
+      userId: number;
+    }[]
+  > {
+    try {
+      const result = await this.connectionPool.note.findMany({
+        where: { userId: userId },
+      });
+      this.logger.log(result);
+      return result;
+    } catch (e) {
+      this.logger.log(e);
+      throw new Error("failed to retrieve...");
+    }
+  }
+
+  async addNote(id: number, text: string): Promise<Note> {
     try {
       const result = await this.connectionPool.note.create({
         data: {
@@ -34,13 +60,14 @@ export class NoteService {
       });
 
       this.logger.log(result);
+      return result;
     } catch (e) {
       this.logger.log(e);
       throw new Error("failed to add the new note...");
     }
   }
 
-  async updateNote(id: string, text: string) {
+  async updateNote(id: string, text: string): Promise<Note> {
     try {
       const results = await this.connectionPool.note.update({
         where: { id: +id },
@@ -48,19 +75,21 @@ export class NoteService {
       });
 
       this.logger.log(results);
+      return results;
     } catch (e) {
       this.logger.log(e);
       throw new Error("failed to update...");
     }
   }
 
-  async deleteNote(id: string) {
+  async deleteNote(id: string): Promise<Note> {
     try {
       const results = await this.connectionPool.note.delete({
         where: { id: +id },
       });
 
       this.logger.log(results);
+      return results;
     } catch (e) {
       this.logger.log(e);
       throw new Error("failed to delete...");
